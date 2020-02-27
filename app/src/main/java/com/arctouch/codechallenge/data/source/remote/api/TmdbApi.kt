@@ -1,8 +1,8 @@
-package com.arctouch.codechallenge.api
+package com.arctouch.codechallenge.data.source.remote.api
 
-import com.arctouch.codechallenge.model.GenreResponse
-import com.arctouch.codechallenge.model.Movie
-import com.arctouch.codechallenge.model.UpcomingMoviesResponse
+import com.arctouch.codechallenge.domain.model.GenreResponse
+import com.arctouch.codechallenge.domain.model.Movie
+import com.arctouch.codechallenge.domain.model.UpcomingMoviesResponse
 import io.reactivex.Observable
 import retrofit2.http.GET
 import retrofit2.http.Path
