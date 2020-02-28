@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">Code Challenge</string>
     <string name="movie_and_genres">%s - %s</string>
+    <string name="ui_movie_fetch_error">Ocorreu um erro ao buscar dados. Verifique sua conexão com a internet.</string>
+    <string name="ui_movie_empty">Nenhum resultado encontrado!</string>
 </resources>

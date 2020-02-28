@@ -1,4 +1,4 @@
-package com.arctouch.codechallenge.presentation.util
+package com.arctouch.codechallenge.presentation.common
 
 import com.arctouch.codechallenge.data.source.remote.api.TmdbApi
 

@@ -1,25 +1,37 @@
 package com.arctouch.codechallenge.domain.model
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
+import io.realm.RealmList
+import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
 
 data class GenreResponse(val genres: List<Genre>)
 
-data class Genre(val id: Int, val name: String)
+open class Genre(
+        @PrimaryKey
+        var id: Int,
+        var name: String
+) : RealmObject() {
+        public constructor() : this(0, "")
+}
 
 data class UpcomingMoviesResponse(
-    val page: Int,
-    val results: List<Movie>,
-    @Json(name = "total_pages") val totalPages: Int,
-    @Json(name = "total_results") val totalResults: Int
+        val page: Int,
+        val results: List<Movie>,
+        @SerializedName("total_pages") val totalPages: Int,
+        @SerializedName("total_results") val totalResults: Int
 )
 
-data class Movie(
-    val id: Int,
-    val title: String,
-    val overview: String?,
-    val genres: List<Genre>?,
-    @Json(name = "genre_ids") val genreIds: List<Int>?,
-    @Json(name = "poster_path") val posterPath: String?,
-    @Json(name = "backdrop_path") val backdropPath: String?,
-    @Json(name = "release_date") val releaseDate: String?
-)
+open class Movie(
+        @PrimaryKey
+        var id: Int,
+        var title: String,
+        var overview: String? = null,
+        var genres: RealmList<Genre>? = null,
+        @SerializedName("genre_ids") var genreIds: RealmList<Int>? = null,
+        @SerializedName("poster_path") var posterPath: String? = null,
+        @SerializedName("backdrop_path") var backdropPath: String? = null,
+        @SerializedName("release_date") var releaseDate: String? = null
+) : RealmObject() {
+        public constructor() : this(0, "")
+}
