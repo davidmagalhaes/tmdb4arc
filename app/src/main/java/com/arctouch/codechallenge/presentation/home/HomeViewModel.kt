@@ -37,11 +37,8 @@ class HomeViewModel : ViewModel() {
         searchFor = null
 
         ResultWrapper.wrapLoading(
-                FetchGenresUseCase.execute()
-                    .flatMap {
-                        FetchUpcomingMoviesUseCase.execute(1)
-                    }
-                    .firstElement(),
+                FetchUpcomingMoviesUseCase.execute(1)
+                        .firstElement(),
                 movies
         )
     }

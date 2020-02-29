@@ -18,4 +18,9 @@ object GenreRepository {
                     genreLocalDatasource.upsert(it)
                 }
     }
+
+    fun count() : Observable<Long> {
+        return genreLocalDatasource.count()
+                .subscribeOn(Schedulers.single())
+    }
 }

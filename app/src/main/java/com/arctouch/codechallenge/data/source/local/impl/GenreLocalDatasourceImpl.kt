@@ -1,5 +1,6 @@
 package com.arctouch.codechallenge.data.source.local.impl
 
+import com.arctouch.codechallenge.data.source.local.entity.GenreDb
 import com.arctouch.codechallenge.data.source.local.mapper.GenreLocalMapper
 import com.arctouch.codechallenge.domain.model.Genre
 import io.reactivex.Observable
@@ -15,6 +16,14 @@ object GenreLocalDatasourceImpl {
                             GenreLocalMapper.toDto(genres)
                     )
                 }
+            }
+        }
+    }
+
+    fun count() : Observable<Long> {
+        return Observable.fromCallable {
+            Realm.getDefaultInstance().use {realm ->
+                realm.where(GenreDb::class.java).count()
             }
         }
     }

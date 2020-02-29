@@ -8,5 +8,5 @@
     <string name="ui_movie_details_genres">Gêneros</string>
     <string name="ui_movie_details_load_fail">Um erro ocorreu. Verifique sua conexão com a internet.</string>
     <string name="ui_home_menu_search">Pesquisar</string>
-    <string name="ui_home_menu_search_hint">Pesquise pelo título ou parte dele.</string>
+    <string name="ui_home_menu_search_hint">Pesquise pelo título ou parte dele</string>
 </resources>

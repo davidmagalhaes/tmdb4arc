@@ -3,12 +3,16 @@ package com.arctouch.codechallenge.infra
 import android.app.Application
 import android.util.Log
 import com.arctouch.codechallenge.BuildConfig
+import com.arctouch.codechallenge.data.source.local.entity.MovieDb
 import com.arctouch.codechallenge.data.source.remote.api.TmdbApi
+import com.arctouch.codechallenge.domain.usecase.FetchGenresUseCase
+import com.arctouch.codechallenge.infra.util.Ipv4RoutingOverIpv6
 import com.facebook.stetho.Stetho
 import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.google.gson.*
 import com.uphyca.stetho_realm.RealmInspectorModulesProvider
 import io.reactivex.plugins.RxJavaPlugins
+import io.reactivex.schedulers.Schedulers
 import io.realm.Realm
 import io.realm.RealmConfiguration
 import okhttp3.ConnectionPool
@@ -50,13 +54,16 @@ class App : Application() {
 
         val okHttpClient by lazy {
             val okHttp3ClientBuilder = OkHttpClient.Builder()
-                    .connectionPool(ConnectionPool(5, 1, TimeUnit.MINUTES))
+                    .connectionPool(ConnectionPool(10, 1, TimeUnit.MINUTES))
                     .readTimeout(BuildConfig.NETWORK_TIMEOUT, TimeUnit.MILLISECONDS)
                     .connectTimeout(BuildConfig.NETWORK_TIMEOUT, TimeUnit.MILLISECONDS)
                     .writeTimeout(BuildConfig.NETWORK_TIMEOUT, TimeUnit.MILLISECONDS)
+                    .retryOnConnectionFailure(false)
+                    .dns(Ipv4RoutingOverIpv6())
                     .addInterceptor(HttpLoggingInterceptor().apply {
                         level = HttpLoggingInterceptor.Level.BODY
                     })
+
 
             if(BuildConfig.DEBUG){
                 okHttp3ClientBuilder.addNetworkInterceptor(StethoInterceptor())
@@ -70,7 +77,7 @@ class App : Application() {
                     .baseUrl(TmdbApi.URL)
                     .client(okHttpClient)
                     .addConverterFactory(GsonConverterFactory.create(gson))
-                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                     .build()
                     .create(TmdbApi::class.java)
         }
@@ -102,7 +109,12 @@ class App : Application() {
                         .build()
         )
 
-        Realm.deleteRealm(Realm.getDefaultConfiguration()!!)
+        //TODO resolver o problema de cache pra poder remover isso
+        Realm.getDefaultInstance().use { realm ->
+            realm.executeTransaction {
+                it.delete(MovieDb::class.java)
+            }
+        }
 
         if(BuildConfig.DEBUG){
             Stetho.initialize(
@@ -111,6 +123,10 @@ class App : Application() {
                     .enableWebKitInspector(RealmInspectorModulesProvider.builder(instance).build())
                     .build()
             )
+        }
+
+        val d = FetchGenresUseCase.execute().subscribe {
+            //Do nothing
         }
     }
 }

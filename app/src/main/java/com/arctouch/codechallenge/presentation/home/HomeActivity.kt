@@ -40,26 +40,6 @@ class HomeActivity : AppCompatActivity() {
 
         recyclerView.adapter = adapter
 
-        restartLiveData()
-
-        model.fetchUpcomingMovies()
-
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-
-                if(newState == RecyclerView.SCROLL_STATE_IDLE && !recyclerView.canScrollVertically(1)){
-                    model.nextPage()
-                }
-            }
-        })
-    }
-
-    fun restartLiveData(){
-        model.movies.removeObservers(this)
-
-        adapter.clearItems()
-
         model.movies.observe(this, Observer {
             when {
                 it.returnedData -> {
@@ -96,6 +76,18 @@ class HomeActivity : AppCompatActivity() {
                 else -> {}
             }
         })
+
+        model.fetchUpcomingMovies()
+
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+
+                if(newState == RecyclerView.SCROLL_STATE_IDLE && !recyclerView.canScrollVertically(1)){
+                    model.nextPage()
+                }
+            }
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -128,7 +120,7 @@ class HomeActivity : AppCompatActivity() {
         searchView.setQueryHint(resources.getString(R.string.ui_home_menu_search_hint))
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                restartLiveData()
+                adapter.clearItems()
 
                 if (query.orEmpty().isEmpty()) {
                     model.fetchUpcomingMovies()
@@ -142,7 +134,7 @@ class HomeActivity : AppCompatActivity() {
 
             override fun onQueryTextChange(newText: String): Boolean {
                 if (newText.isEmpty()) {
-                    restartLiveData()
+                    adapter.clearItems()
                     model.fetchUpcomingMovies()
                 }
 
