@@ -13,10 +13,12 @@
 #### Issues
 
 - O Cache offline não funciona ao encerrar a aplicação. Ele foi tirado pois entraria
-em conflito com a paginação.
+em \
+conflito com a paginação.
 - Algumas partes do código não foram refatoradas devido ao prazo de entrega
-- O código não possui container de injeção de dependência (Dagger2), o que certamente
-daria mais flexibilidade para o código, mas exigiria um prazo maior.
+- O código não possui container de injeção de dependência (Dagger2), \
+o que certamente daria mais flexibilidade para o código, mas exigiria 
+um prazo maior.
 
 #### Melhorias
 
