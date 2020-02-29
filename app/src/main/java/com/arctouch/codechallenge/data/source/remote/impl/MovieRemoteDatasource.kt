@@ -17,9 +17,22 @@ object MovieRemoteDatasource {
     fun fetchUpcomingMovies(page : Long = 1) : Observable<List<Movie>> {
         return api.upcomingMovies(
                 TmdbApi.API_KEY,
-                TmdbApi.DEFAULT_LANGUAGE,
                 page,
-                TmdbApi.DEFAULT_REGION
+//                TmdbApi.DEFAULT_LANGUAGE,
+//                TmdbApi.DEFAULT_REGION,
+                "primary_release_date.desc"
+        ).map {
+            it.results
+        }
+    }
+
+    fun searchMovies(query : String, page : Long = 1) : Observable<List<Movie>> {
+        return api.search(
+                TmdbApi.API_KEY,
+//                TmdbApi.DEFAULT_LANGUAGE,
+//                TmdbApi.DEFAULT_REGION,
+                query,
+                 page
         ).map {
             it.results
         }

@@ -20,6 +20,10 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".presentation.detail.MovieDetailsActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            />
+
     </application>
 
 </manifest>

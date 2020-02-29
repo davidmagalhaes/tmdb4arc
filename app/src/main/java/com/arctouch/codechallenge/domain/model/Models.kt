@@ -2,17 +2,17 @@ package com.arctouch.codechallenge.domain.model
 
 import com.google.gson.annotations.SerializedName
 import io.realm.RealmList
-import io.realm.RealmObject
-import io.realm.annotations.PrimaryKey
+import org.threeten.bp.LocalDate
+import java.util.*
 
 data class GenreResponse(val genres: List<Genre>)
 
-open class Genre(
-        @PrimaryKey
-        var id: Int,
+class Genre(
+        @SerializedName("id")
+        var id: Long,
         var name: String
-) : RealmObject() {
-        public constructor() : this(0, "")
+) {
+        constructor() : this(0, "")
 }
 
 data class UpcomingMoviesResponse(
@@ -22,16 +22,41 @@ data class UpcomingMoviesResponse(
         @SerializedName("total_results") val totalResults: Int
 )
 
-open class Movie(
-        @PrimaryKey
-        var id: Int,
+data class Movie(
+        @SerializedName("id")
+        var id: Long,
         var title: String,
         var overview: String? = null,
-        var genres: RealmList<Genre>? = null,
-        @SerializedName("genre_ids") var genreIds: RealmList<Int>? = null,
+        var genres: List<Genre> = listOf(),
+        @SerializedName("genre_ids") var genreIds: List<Int> = listOf(),
         @SerializedName("poster_path") var posterPath: String? = null,
         @SerializedName("backdrop_path") var backdropPath: String? = null,
-        @SerializedName("release_date") var releaseDate: String? = null
-) : RealmObject() {
-        public constructor() : this(0, "")
+        @SerializedName("release_date") var releaseDate: Date? = null
+) : Comparable<Movie> {
+        constructor() : this(0, "")
+
+        override fun compareTo(other: Movie): Int {
+            return (id - other.id).toInt()
+        }
+
+        override fun equals(other: Any?): Boolean {
+            return  if(other is Movie){
+                id == other.id
+            }
+            else {
+                return false
+            }
+        }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + title.hashCode()
+        result = 31 * result + (overview?.hashCode() ?: 0)
+        result = 31 * result + genres.hashCode()
+        result = 31 * result + genreIds.hashCode()
+        result = 31 * result + (posterPath?.hashCode() ?: 0)
+        result = 31 * result + (backdropPath?.hashCode() ?: 0)
+        result = 31 * result + (releaseDate?.hashCode() ?: 0)
+        return result
+    }
 }

@@ -3,4 +3,10 @@
     <string name="movie_and_genres">%s - %s</string>
     <string name="ui_movie_fetch_error">Ocorreu um erro ao buscar dados. Verifique sua conexão com a internet.</string>
     <string name="ui_movie_empty">Nenhum resultado encontrado!</string>
+    <string name="ui_movie_pagination_exhausted">Última página alcançada!</string>
+    <string name="ui_movie_details_overview">Sinopse</string>
+    <string name="ui_movie_details_genres">Gêneros</string>
+    <string name="ui_movie_details_load_fail">Um erro ocorreu. Verifique sua conexão com a internet.</string>
+    <string name="ui_home_menu_search">Pesquisar</string>
+    <string name="ui_home_menu_search_hint">Pesquise pelo título ou parte dele.</string>
 </resources>

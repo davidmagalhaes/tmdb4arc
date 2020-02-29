@@ -16,7 +16,6 @@ object GenreRepository {
                 .subscribeOn(Schedulers.io())
                 .flatMap {
                     genreLocalDatasource.upsert(it)
-                            .observeOn(Schedulers.single())
                 }
     }
 }

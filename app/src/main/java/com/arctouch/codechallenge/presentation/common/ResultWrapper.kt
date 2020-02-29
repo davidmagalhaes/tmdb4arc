@@ -1,4 +1,4 @@
-package br.com.softbuilder.appplus2.presentation.common
+package com.arctouch.codechallenge.presentation.common
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.LiveDataReactiveStreams

@@ -1,5 +1,6 @@
 package com.arctouch.codechallenge.data.source.local.impl
 
+import com.arctouch.codechallenge.data.source.local.mapper.GenreLocalMapper
 import com.arctouch.codechallenge.domain.model.Genre
 import io.reactivex.Observable
 import io.realm.Realm
@@ -10,7 +11,9 @@ object GenreLocalDatasourceImpl {
         return Observable.fromCallable {
             Realm.getDefaultInstance().use {realm ->
                 realm.executeTransaction {
-                    it.copyToRealmOrUpdate(genres)
+                    it.copyToRealmOrUpdate(
+                            GenreLocalMapper.toDto(genres)
+                    )
                 }
             }
         }

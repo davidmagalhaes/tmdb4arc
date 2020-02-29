@@ -17,6 +17,7 @@ interface TmdbApi {
         const val DEFAULT_REGION = "BR"
     }
 
+
     @GET("genre/movie/list")
     fun genres(
         @Query("api_key") apiKey: String,
@@ -26,9 +27,10 @@ interface TmdbApi {
     @GET("movie/upcoming")
     fun upcomingMovies(
         @Query("api_key") apiKey: String,
-        @Query("language") language: String,
         @Query("page") page: Long,
-        @Query("region") region: String
+//        @Query("language") language: String,
+//        @Query("region") region: String,
+        @Query("sort_by") sortBy : String
     ): Observable<UpcomingMoviesResponse>
 
     @GET("movie/{id}")
@@ -37,4 +39,11 @@ interface TmdbApi {
         @Query("api_key") apiKey: String,
         @Query("language") language: String
     ): Observable<Movie>
+
+    @GET("search/movie")
+    fun search(
+        @Query("api_key") apiKey: String,
+        @Query("query") query : String,
+        @Query("page") page: Long
+    ): Observable<UpcomingMoviesResponse>
 }

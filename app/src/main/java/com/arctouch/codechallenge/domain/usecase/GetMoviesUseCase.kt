@@ -5,7 +5,7 @@ import com.arctouch.codechallenge.domain.model.Movie
 import io.reactivex.Flowable
 
 object GetMoviesUseCase {
-    fun execute(id : Int? = null) : Flowable<List<Movie>> {
+    fun execute(id : Long? = null) : Flowable<List<Movie>> {
         return MovieRepository.get(id)
     }
 }
