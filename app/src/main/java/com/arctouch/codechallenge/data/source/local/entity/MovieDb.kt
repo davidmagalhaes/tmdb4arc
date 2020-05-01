@@ -1,21 +1,20 @@
 package com.arctouch.codechallenge.data.source.local.entity
 
-
-import io.realm.RealmList
-import io.realm.RealmObject
-import io.realm.annotations.PrimaryKey
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import org.threeten.bp.LocalDate
 import java.util.*
 
-open class MovieDb(
+@Entity
+data class MovieDb(
         @PrimaryKey
+        @ColumnInfo(name = "_movie_id")
         var id: Long,
         var title: String,
         var overview: String? = null,
-        var genres: RealmList<GenreDb> = RealmList(),
-        var genreIds: RealmList<Int> = RealmList(),
+        var genreIds: List<Long>,
         var posterPath: String? = null,
         var backdropPath: String? = null,
-        var releaseDate: Date? = null
-) : RealmObject() {
-    constructor() : this(0, "")
-}
+        var releaseDate: LocalDate? = null
+)

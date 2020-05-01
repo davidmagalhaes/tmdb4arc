@@ -7,7 +7,9 @@ import com.arctouch.codechallenge.domain.usecase.GetMoviesUseCase
 import com.arctouch.codechallenge.presentation.common.Result
 import com.arctouch.codechallenge.presentation.common.ResultWrapper
 
-class MovieDetailsViewModel : ViewModel() {
+class MovieDetailsViewModel(
+        private val getMoviesUseCase: GetMoviesUseCase
+) : ViewModel() {
 
     var initialized = false
 
@@ -18,7 +20,9 @@ class MovieDetailsViewModel : ViewModel() {
             initialized = true
 
             ResultWrapper.wrapFirst(
-                    GetMoviesUseCase.execute(id),
+                    getMoviesUseCase.execute(id).map {
+                        it.toList()
+                    },
                     movie
             )
         }

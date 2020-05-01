@@ -11,21 +11,27 @@ import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.arctouch.codechallenge.R
 import com.arctouch.codechallenge.domain.error.PaginationExhaustedException
+import com.arctouch.codechallenge.presentation.di.PresentationSingletons
 import com.arctouch.codechallenge.presentation.detail.MovieDetailsActivity
+import com.arctouch.codechallenge.presentation.ext.bindViewModel
 import kotlinx.android.synthetic.main.home_activity.*
+import javax.inject.Inject
 
 
 class HomeActivity : AppCompatActivity() {
 
+    @Inject
     lateinit var model : HomeViewModel
 
     val adapter = HomeAdapter { _, id ->
         startActivity(
-            Intent(this, MovieDetailsActivity::class.java).apply {
+            Intent(
+                    this,
+                    MovieDetailsActivity::class.java
+            ).apply {
                 putExtra("id", id)
             }
         )
@@ -35,59 +41,41 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home_activity)
 
-        model = ViewModelProvider(this).get(HomeViewModel::class.java)
+        PresentationSingletons.daggerComponent.inject(this)
+
+        model = bindViewModel { model }
+
         model.init()
 
         recyclerView.adapter = adapter
 
-        model.movies.observe(this, Observer {
-            when {
-                it.returnedData -> {
-                    adapter.addItems(it.data!!)
-                    recyclerView.visibility = View.VISIBLE
-                    progressBar.visibility = View.GONE
-                    empty_list_placeholder.visibility = View.GONE
-                }
-                it.failed -> {
-                    if(it.error is PaginationExhaustedException){
-                        Toast.makeText(
-                                this,
-                                R.string.ui_movie_pagination_exhausted,
-                                Toast.LENGTH_LONG
-                        ).show()
-                    }
-                    else {
-                        Toast.makeText(
-                                this,
-                                R.string.ui_movie_fetch_error,
-                                Toast.LENGTH_LONG
-                        ).show()
-                    }
+        model.movies.observe(
+            this,
+            Observer {
+                adapter.submitList(it)
+            }
+        )
 
-                    recyclerView.visibility = View.VISIBLE
-                    progressBar.visibility = View.GONE
-                    empty_list_placeholder.visibility = View.GONE
-                }
-                it.waiting -> {
-                    recyclerView.visibility = if(adapter.hasItems()) View.VISIBLE else View.GONE
+        model.loadingNextPage.observe(
+            this,
+            Observer {
+                if(it){
                     empty_list_placeholder.visibility = View.GONE
                     progressBar.visibility = View.VISIBLE
                 }
-                else -> {}
-            }
-        })
-
-        model.fetchUpcomingMovies()
-
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-
-                if(newState == RecyclerView.SCROLL_STATE_IDLE && !recyclerView.canScrollVertically(1)){
-                    model.nextPage()
+                else{
+                    recyclerView.visibility = View.VISIBLE
+                    progressBar.visibility = View.GONE
+                    empty_list_placeholder.visibility = View.GONE
                 }
             }
-        })
+        )
+
+        model.fetchUpcomingMovies()
+    }
+
+    override fun onResume() {
+        super.onResume()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -120,8 +108,6 @@ class HomeActivity : AppCompatActivity() {
         searchView.setQueryHint(resources.getString(R.string.ui_home_menu_search_hint))
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                adapter.clearItems()
-
                 if (query.orEmpty().isEmpty()) {
                     model.fetchUpcomingMovies()
                 }
@@ -134,7 +120,6 @@ class HomeActivity : AppCompatActivity() {
 
             override fun onQueryTextChange(newText: String): Boolean {
                 if (newText.isEmpty()) {
-                    adapter.clearItems()
                     model.fetchUpcomingMovies()
                 }
 
@@ -144,6 +129,5 @@ class HomeActivity : AppCompatActivity() {
 
         return true
     }
-
 
 }

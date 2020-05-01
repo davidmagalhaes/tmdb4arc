@@ -1,12 +1,13 @@
 package com.arctouch.codechallenge.data.source.local.entity
 
-import io.realm.RealmObject
-import io.realm.annotations.PrimaryKey
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-open class GenreDb(
+@Entity
+class GenreDb(
         @PrimaryKey
+        @ColumnInfo(name = "_genre_id")
         var id: Long,
         var name: String
-) : RealmObject() {
-        constructor() : this(0, "")
-}
+)

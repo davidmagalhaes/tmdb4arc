@@ -1,66 +1,41 @@
 package com.arctouch.codechallenge.data.source.local.impl
 
-import com.arctouch.codechallenge.data.source.local.entity.GenreDb
+import androidx.paging.DataSource
+import androidx.paging.PagedList
+import androidx.paging.RxPagedListBuilder
+import androidx.paging.toFlowable
+import com.arctouch.codechallenge.data.boundary.local.MovieLocalDatasource
+import com.arctouch.codechallenge.data.source.local.dao.MovieDao
 import com.arctouch.codechallenge.data.source.local.entity.MovieDb
+import com.arctouch.codechallenge.data.source.local.mapper.MovieFullJoinLocalMapper
 import com.arctouch.codechallenge.data.source.local.mapper.MovieLocalMapper
-import com.arctouch.codechallenge.domain.model.Genre
 import com.arctouch.codechallenge.domain.model.Movie
-import com.arctouch.codechallenge.infra.App
+import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.Observable
-import io.realm.Realm
-import io.realm.RealmList
-import io.realm.Sort
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
+import java.util.concurrent.Executors
 
-object MovieLocalDatasourceImpl {
-    fun get(id : Long? = null) : Flowable<List<Movie>> {
-        val realm = App.realm
-        val query = realm.where(MovieDb::class.java)
-
-        id?.let {
-            query.equalTo("id", it)
-        }
-
-        return query
-                .sort("releaseDate", Sort.DESCENDING)
-                .findAllAsync()
-                .asFlowable()
-                .map {
-                    MovieLocalMapper.toEntity(it.toList())
-                }
-    }
-
-    fun upsert(movies : List<Movie>) : Observable<Any> {
-        return Observable.fromCallable {
-            Realm.getDefaultInstance().use {outerRealm ->
-                outerRealm.executeTransaction { realm ->
-                    val moviesRealm = realm.copyToRealmOrUpdate(
-                            MovieLocalMapper.toDto(movies)
-                    )
-
-                    moviesRealm.forEach {
-                        it.genres = RealmList<GenreDb>().apply {
-                            addAll(
-                                realm.where(GenreDb::class.java).`in`(
-                                        "id", Array(it.genreIds.size){idx ->
-                                    it.genreIds.get(idx)
-                                }).findAll().toList()
-                            )
-                        }
-                    }
-                }
-            }
+class MovieLocalDatasourceImpl(
+        private val movieDao: MovieDao
+) : MovieLocalDatasource {
+    override fun get(id : Long?) : DataSource.Factory<Int, Movie> {
+        return movieDao.get().mapByPage {
+            MovieFullJoinLocalMapper.toEntity(it)
         }
     }
 
-    fun deleteAll() : Observable<Any> {
-        return Observable.fromCallable {
-            Realm.getDefaultInstance().use { outerRealm ->
-                outerRealm.executeTransaction { realm ->
-                    realm.where(MovieDb::class.java).findAll().deleteAllFromRealm()
-                }
-            }
-        }
+    override fun upsert(movies : List<Movie>) : Observable<Any> {
+        return movieDao.upsert(
+                *MovieLocalMapper.toDto(movies).toTypedArray()
+        ).toObservable()
+                .map {  }
     }
 
+    override fun deleteAll() : Observable<Any> {
+        return movieDao.deleteAll()
+                .toObservable()
+                .map {  }
+    }
 }

@@ -1,36 +1,53 @@
 package com.arctouch.codechallenge.data.repository
 
-import com.arctouch.codechallenge.data.source.local.impl.MovieLocalDatasourceImpl
-import com.arctouch.codechallenge.data.source.remote.impl.MovieRemoteDatasource
+import androidx.paging.PagedList
+import androidx.paging.RxPagedListBuilder
+import com.arctouch.codechallenge.data.boundary.local.MovieLocalDatasource
+import com.arctouch.codechallenge.data.boundary.remote.MovieRemoteDatasource
+import com.arctouch.codechallenge.data.scheduler.AppSchedulers
 import com.arctouch.codechallenge.domain.error.PaginationExhaustedException
 import com.arctouch.codechallenge.domain.model.Movie
+import com.arctouch.codechallenge.domain.repository.MovieRepository
+import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
-object MovieRepository {
+class MovieRepositoryImpl (
+        private val appSchedulers: AppSchedulers,
+        private val movieRemoteDatasource : MovieRemoteDatasource,
+        private val movieLocalDatasource : MovieLocalDatasource
+) : MovieRepository {
 
-    val movieRemoteDatasource = MovieRemoteDatasource
-    val movieLocalDatasource = MovieLocalDatasourceImpl
-
-    fun get(id : Long? = null) : Flowable<List<Movie>> {
-        return movieLocalDatasource.get(id)
+    override fun get(
+            id : Long?,
+            pageSize : Int,
+            boundaryCallback: PagedList.BoundaryCallback<Movie>?
+    ) : Flowable<PagedList<Movie>> {
+        return RxPagedListBuilder(movieLocalDatasource.get(id), pageSize)
+                .setFetchScheduler(appSchedulers.database())
+                .setNotifyScheduler(appSchedulers.main())
+                .setBoundaryCallback(boundaryCallback)
+                .buildFlowable(BackpressureStrategy.BUFFER)
     }
 
-    fun fetchMovieDetails(id : Long) : Observable<Any> {
+    override fun fetchMovieDetails(id : Long) : Observable<Any> {
         return movieRemoteDatasource.fetchMovieDetails(id)
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(appSchedulers.network())
                 .flatMap { movie ->
                     movieLocalDatasource.upsert(listOf(movie))
+                            .subscribeOn(appSchedulers.database())
                 }
     }
 
-    fun fetchUpcomingMovies(page : Long = 1L) : Observable<Any> {
+    override fun fetchUpcomingMovies(page : Long) : Observable<Any> {
         return movieRemoteDatasource.fetchUpcomingMovies(page)
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(appSchedulers.network())
                 .flatMap { movies ->
                     if(page == 1L){
                         movieLocalDatasource.deleteAll()
+                                .subscribeOn(appSchedulers.database())
                                 .map {
                                     movies
                                 }
@@ -42,6 +59,7 @@ object MovieRepository {
                 .flatMap { movies ->
                     if(movies.isNotEmpty()) {
                         movieLocalDatasource.upsert(movies)
+                                .subscribeOn(appSchedulers.database())
                     }
                     else{
                         throw PaginationExhaustedException()
@@ -49,12 +67,13 @@ object MovieRepository {
                 }
     }
 
-    fun searchMovies(query : String, page : Long = 1) : Observable<Any> {
+    override fun searchMovies(query : String, page : Long) : Observable<Any> {
         return movieRemoteDatasource.searchMovies(query, page)
-                .subscribeOn(Schedulers.io())
+                .subscribeOn(appSchedulers.network())
                 .flatMap { movies ->
                     if(page == 1L){
                         movieLocalDatasource.deleteAll()
+                                .subscribeOn(appSchedulers.database())
                                 .map {
                                     movies
                                 }
@@ -66,6 +85,7 @@ object MovieRepository {
                 .flatMap { movies ->
                     if(movies.isNotEmpty()) {
                         movieLocalDatasource.upsert(movies)
+                                .subscribeOn(appSchedulers.database())
                     }
                     else{
                         throw PaginationExhaustedException()

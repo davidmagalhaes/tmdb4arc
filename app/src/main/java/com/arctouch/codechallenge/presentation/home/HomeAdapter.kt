@@ -3,6 +3,8 @@ package com.arctouch.codechallenge.presentation.home
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.paging.PagedListAdapter
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.arctouch.codechallenge.R
 import com.arctouch.codechallenge.domain.model.Movie
@@ -16,56 +18,34 @@ import kotlin.collections.LinkedHashSet
 
 class HomeAdapter(
         private val onClick : (View, Long)->Unit
-) : RecyclerView.Adapter<HomeAdapter.ViewHolder>() {
+) : PagedListAdapter<Movie, HomeViewHolder>(DIFF_CALLBACK) {
 
-    val movies = arrayListOf<Movie>()
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HomeViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(
+                R.layout.movie_item,
+                parent,
+                false
+        )
+        return HomeViewHolder(view, onClick)
+    }
 
-    class ViewHolder(
-            itemView: View,
-            private val onClick : (View, Long)->Unit
-    ) : RecyclerView.ViewHolder(itemView) {
-
-        private val movieImageUrlBuilder = MovieImageUrlBuilder()
-
-        fun bind(movie: Movie) {
-            itemView.titleTextView.text = movie.title
-            itemView.genresTextView.text = movie.genres.joinToString(separator = ", ") { it.name }
-            itemView.releaseDateTextView.text = movie.releaseDate?.let {
-                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(it)
-            } ?: ""
-
-
-            itemView.setOnClickListener {
-                onClick(it, movie.id)
-            }
-
-            Glide.with(itemView)
-                .load(movie.posterPath?.let { movieImageUrlBuilder.buildPosterUrl(it) })
-                .apply(RequestOptions().placeholder(R.drawable.ic_image_placeholder))
-                .into(itemView.posterImageView)
+    override fun onBindViewHolder(holder: HomeViewHolder, position: Int) {
+        val item = getItem(position)
+        if(item != null) {
+            holder.bind(item)
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.movie_item, parent, false)
-        return ViewHolder(view, onClick)
-    }
+    companion object {
+        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Movie>() {
+            // The ID property identifies when items are the same.
+            override fun areItemsTheSame(oldItem: Movie, newItem: Movie) =
+                    oldItem.id == newItem.id
 
-    override fun getItemCount() = movies.size
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(movies[position])
-
-    fun addItems(movies : List<Movie>){
-        this.movies.removeAll(movies)
-        this.movies.addAll(movies)
-        notifyDataSetChanged()
-    }
-
-    fun clearItems(){
-        movies.clear()
-    }
-
-    fun hasItems() : Boolean {
-        return movies.isNotEmpty()
+            // If you use the "==" operator, make sure that the object implements
+            // .equals(). Alternatively, write custom data comparison logic here.
+            override fun areContentsTheSame(
+                    oldItem: Movie, newItem: Movie) = oldItem == newItem
+        }
     }
 }
